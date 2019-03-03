@@ -25,3 +25,7 @@
 `oc create -f tick-ingress-admin.yaml`
 
 `oc create -f tick-ingress.yaml`
+
+Allow Pod newtwoek between projects 
+
+`oc adm pod-network make-projects-global dev tick`
