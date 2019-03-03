@@ -1,0 +1,103 @@
+kind: Template
+apiVersion: v1
+template: grafana
+metadata:
+  name: grafana
+labels:
+  app: tick
+
+parameters:
+- name: STORAGE_SIZE
+  value: 10Gi
+  description: The size of the persistent storage for Grafana
+- name: HOST_URL
+  value: cafegrafana.achalasolutions.com
+  description: The url to access the grafana dashboard
+  required: true
+objects:
+- kind: "PersistentVolumeClaim"
+  apiVersion: v1
+  metadata:
+    name: grafana-data
+  spec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${STORAGE_SIZE}
+    volumeName: "pv0022"
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: grafana-svc
+  spec:
+    ports:
+    - port: 3000
+      protocol: TCP
+      targetPort: 3000
+    selector:
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    creationTimestamp: null
+    labels:
+      metrics: grafana
+    name: grafana
+  spec:
+    replicas: 1
+    template:
+      metadata:
+      spec:
+        containers:
+        - env:
+          - name: GF_SMTP_ENABLED
+            value: true 
+          - name: GF_SMTP_HOST
+            value: smtp.office365.com:587
+          - name: GF_SMTP_SKIP_VERIFY
+            value: false 
+          - name: GF_SMTP_FROM_NAME
+            value: Grafana-Alert
+          - name: GF_LOG_LEVEL
+            value: debug
+          - name: GF_SMTP_FROM_ADDRESS
+            value: ramakrishnaj@achalasolutions.com
+          - name: GF_SMTP_USER
+            value: ramakrishnaj@achalasolutions.com
+          - name: GF_SMTP_PASSWORD
+            value: XXXXX
+          image: akhilreddyjirra/grafana:cafe
+          imagePullPolicy: Always
+          name: grafana
+          ports:
+          - containerPort: 3000
+            protocol: TCP
+          volumeMounts:
+          - mountPath: /var/lib/grafana
+            name: grafana-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: grafana-data
+          persistentVolumeClaim:
+            claimName: grafana-data
+    triggers:
+    - type: ConfigChange
+  status: {}
+- kind: Route
+  apiVersion: v1
+  metadata:
+    creationTimestamp: null
+    labels:
+      metrics: grafana
+    name: grafana-route
+  spec:
+    host: ${HOST_URL}
+    to:
+      kind: Service
+      name: grafana-svc

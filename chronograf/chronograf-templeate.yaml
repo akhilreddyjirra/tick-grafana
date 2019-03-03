@@ -1,0 +1,90 @@
+kind: Template
+apiVersion: v1
+template: chronograf
+metadata:
+  name: chronograf
+labels:
+  app: tick
+
+parameters:
+- name: APP_IMAGE
+  description: Name of the telegraf image
+  value: chronograf
+- name: APP_NAME
+  description: master name used as a service name and a selector
+  value: chronograf
+- name: STORAGE_SIZE
+  description: master name used as a service name and a selector
+  value: 10Gi
+
+objects:
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: ${APP_NAME}
+  labels:
+    app: tick
+  spec:
+    strategy:
+      type: Rolling
+    triggers:
+      - type: ConfigChange
+    replicas: 1
+    selector:
+      name: ${APP_NAME}
+    template:
+      metadata:
+        labels:
+          name: ${APP_NAME}
+      spec:
+        containers:
+        - name: ${APP_NAME}
+          image: ${APP_IMAGE}
+          command: ["chronograf"]
+          args: ["--influxdb-url=http://influxdb-svc.tick.svc.cluster.local:8086", "--kapacitor-url=http://kapacitor.tick.svc.cluster.local:9092"]
+          ports:
+          - protocol: TCP
+            containerPort: 8888
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 8888
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 8888
+          volumeMounts:
+          - name: data
+            mountPath: /var/lib/chronograf
+        volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: chronograf-data
+- apiVersion: "v1"
+  kind: "PersistentVolumeClaim"
+  metadata:
+    name: "chronograf-data"
+  spec:
+    accessModes:
+      - "ReadWriteOnce"
+    resources:
+      requests:
+        storage: "${STORAGE_SIZE}"
+    volumeName: "pv0024"
+
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: ${APP_NAME}-svc
+  spec:
+    ports:
+    - name: ${APP_NAME}
+      port: 8888
+      protocol: TCP
+      targetPort: 8888
+    selector:
+      name: ${APP_NAME}
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}

@@ -1,0 +1,97 @@
+kind: Template
+apiVersion: v1
+template: kapacitor
+metadata:
+  name: kapacitor
+labels:
+  app: tick
+
+parameters:
+- name: APP_IMAGE
+  description: Name of the telegraf image
+  value: kapacitor:1.4.1-alpine
+- name: APP_NAME
+  description: master name used as a service name and a selector
+  value: kapacitor
+- name: STORAGE_SIZE
+  description: master name used as a service name and a selector
+  value: 10Gi
+
+objects:
+- kind: StatefulSet
+  apiVersion: apps/v1
+  metadata:
+    namespace: tick
+    name: ${APP_NAME}
+  spec:
+    replicas: 1
+    serviceName: ${APP_NAME}-ss
+    selector:
+      matchLabels:
+        app: ${APP_NAME}
+    template:
+      metadata:
+        labels:
+          app: ${APP_NAME}
+      spec:
+        containers:
+        - name: ${APP_NAME}
+          image: ${APP_IMAGE}
+          env:
+          - name: KAPACITOR_HOSTNAME
+            value: kapacitor
+          - name: KAPACITOR_INFLUXDB_0_URLS_0
+            value: http://influxdb-svc.tick.svc.cluster.local:8086
+          ports:
+          - name: api
+            containerPort: 9092
+          volumeMounts:
+          - name: data
+            mountPath: /var/lib/kapacitor
+          resources:
+            requests:
+              cpu: 50m
+              memory: 500Mi
+            limits:
+              cpu: 500m
+              memory: 500Mi
+        volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: kapacitor-data
+- apiVersion: "v1"
+  kind: "PersistentVolumeClaim"
+  metadata:
+    name: "kapacitor-data"
+  spec:
+    accessModes:
+      - "ReadWriteOnce"
+    resources:
+      requests:
+        storage: "${STORAGE_SIZE}"
+    volumeName: "pv0021"
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${APP_NAME}-ss
+  spec:
+    clusterIP: None
+    selector:
+      app: ${APP_NAME}
+    ports:
+    - name: api
+      port: 9092
+      targetPort: api
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${APP_NAME}
+  spec:
+    type: ClusterIP
+    selector:
+      app: ${APP_NAME}
+    ports:
+    - name: api
+      port: 9092
+      targetPort: api

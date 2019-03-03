@@ -1,0 +1,26 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: tick-ingress
+  annotations:
+    nginx.org/proxy-connect-timeout: "90s"
+    nginx.org/proxy-read-timeout: "90s"
+    nginx.org/client-max-body-size: "100m"
+
+spec:
+  rules:
+  - host: grafana.achalasolutions.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: grafana-svc
+          servicePort: 3000
+
+  - host: chronograf.achalasolutions.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: chronograf-svc
+          servicePort: 8888
