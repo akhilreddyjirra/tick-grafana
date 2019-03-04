@@ -1,6 +1,10 @@
 # Tick Stack with grafana 
 ### Tick with jolokia agent for spring-boot apps
 
+Teststed On opebhsift V3.11 with Centos OS 7.6
+
+Note: Chnage the mail password at grafana-template.yaml  before applying yaml files
+
 
 `oc new-project tick`
 
@@ -26,6 +30,6 @@
 
 `oc create -f tick-ingress.yaml`
 
-Allow Pod newtwoek between projects 
+#### Allow Pod newtwoek between projects 
 
 `oc adm pod-network make-projects-global dev tick`
