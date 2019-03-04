@@ -54,6 +54,8 @@ objects:
       metrics: grafana
     template:
       metadata:
+        labels:
+          metrics: grafana
       spec:
         containers:
         - env:
@@ -82,7 +84,6 @@ objects:
           volumeMounts:
           - mountPath: /var/lib/grafana
             name: grafana-data
-        dnsPolicy: ClusterFirst
         restartPolicy: Always
         terminationGracePeriodSeconds: 30
         volumes:
