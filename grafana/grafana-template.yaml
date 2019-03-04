@@ -36,6 +36,7 @@ objects:
       protocol: TCP
       targetPort: 3000
     selector:
+      metrics: grafana
     sessionAffinity: None
     type: ClusterIP
   status:
