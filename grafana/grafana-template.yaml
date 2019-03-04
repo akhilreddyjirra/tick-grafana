@@ -50,6 +50,8 @@ objects:
     name: grafana
   spec:
     replicas: 1
+    selector:
+      metrics: grafana
     template:
       metadata:
       spec:
