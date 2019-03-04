@@ -82,7 +82,6 @@ objects:
         - name: influxdb-data
           persistentVolumeClaim:
             claimName: influxdb-data
-    test: false
     triggers:
     - type: ConfigChange
   status: {}

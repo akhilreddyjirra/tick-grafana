@@ -55,11 +55,11 @@ objects:
         containers:
         - env:
           - name: GF_SMTP_ENABLED
-            value: true 
+            value: "true"
           - name: GF_SMTP_HOST
             value: smtp.office365.com:587
           - name: GF_SMTP_SKIP_VERIFY
-            value: false 
+            value: "false"
           - name: GF_SMTP_FROM_NAME
             value: Grafana-Alert
           - name: GF_LOG_LEVEL
@@ -89,15 +89,15 @@ objects:
     triggers:
     - type: ConfigChange
   status: {}
-- kind: Route
-  apiVersion: v1
-  metadata:
-    creationTimestamp: null
-    labels:
-      metrics: grafana
-    name: grafana-route
-  spec:
-    host: ${HOST_URL}
-    to:
-      kind: Service
-      name: grafana-svc
+# - kind: Route
+#   apiVersion: v1
+#   metadata:
+#     creationTimestamp: null
+#     labels:
+#       metrics: grafana
+#     name: grafana-route
+#   spec:
+#     host: ${HOST_URL}
+#     to:
+#       kind: Service
+#       name: grafana-svc
